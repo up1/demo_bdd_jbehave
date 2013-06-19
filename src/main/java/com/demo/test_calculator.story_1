@@ -1,0 +1,5 @@
+Scenario: My Calculator
+ 
+Given Add number process
+When User fill in 5 and 10
+Then Result will be 15
