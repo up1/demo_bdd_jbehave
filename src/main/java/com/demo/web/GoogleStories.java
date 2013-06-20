@@ -3,18 +3,20 @@ package com.demo.web;
 import static java.util.Arrays.asList;
 import static org.jbehave.core.io.CodeLocations.codeLocationFromClass;
 import static org.jbehave.core.reporters.Format.CONSOLE;
-import static org.jbehave.core.reporters.Format.HTML;
-import static org.jbehave.core.reporters.Format.TXT;
-import static org.jbehave.core.reporters.Format.XML;
+import static org.jbehave.web.selenium.WebDriverHtmlOutput.WEB_DRIVER_HTML;
 
 import java.util.List;
 
 import org.jbehave.core.Embeddable;
 import org.jbehave.core.configuration.Configuration;
-import org.jbehave.core.embedder.Embedder;
+import org.jbehave.core.embedder.StoryControls;
+import org.jbehave.core.failures.FailingUponPendingStep;
+import org.jbehave.core.failures.PendingStepStrategy;
 import org.jbehave.core.io.LoadFromClasspath;
 import org.jbehave.core.io.StoryFinder;
 import org.jbehave.core.junit.JUnitStories;
+import org.jbehave.core.reporters.CrossReference;
+import org.jbehave.core.reporters.Format;
 import org.jbehave.core.reporters.StoryReporterBuilder;
 import org.jbehave.core.steps.InjectableStepsFactory;
 import org.jbehave.core.steps.InstanceStepsFactory;
@@ -25,6 +27,7 @@ import org.jbehave.web.selenium.PerStoriesWebDriverSteps;
 import org.jbehave.web.selenium.PropertyWebDriverProvider;
 import org.jbehave.web.selenium.SeleniumConfiguration;
 import org.jbehave.web.selenium.SeleniumContext;
+import org.jbehave.web.selenium.SeleniumContextOutput;
 import org.jbehave.web.selenium.SeleniumStepMonitor;
 import org.jbehave.web.selenium.WebDriverProvider;
 import org.jbehave.web.selenium.WebDriverScreenshotOnFailure;
@@ -44,13 +47,30 @@ public class GoogleStories extends JUnitStories {
 	private ContextView contextView = new LocalFrameContextView().sized(500,
 			100);
 
+	Format[] formats = new Format[] { new SeleniumContextOutput(context),
+			CONSOLE, WEB_DRIVER_HTML };
+
+	PendingStepStrategy pendingStepStrategy = new FailingUponPendingStep();
+	CrossReference crossReference = new CrossReference().withJsonOnly()
+			.withPendingStepStrategy(pendingStepStrategy)
+			.withOutputAfterEachStory(true)
+			.excludingStoriesWithNoExecutedScenarios(true);
+
+	SeleniumStepMonitor stepMonitor = new SeleniumStepMonitor(contextView,
+			context, crossReference.getStepMonitor());
+
+	StoryReporterBuilder reporterBuilder = new StoryReporterBuilder()
+			.withCodeLocation(codeLocationFromClass(GoogleStories.class))
+			.withFailureTrace(true).withFailureTraceCompression(true)
+			.withDefaultFormats().withFormats(formats)
+			.withCrossReference(crossReference);
+
 	public GoogleStories() {
 		// If configuring lifecycle per-stories, you need to ensure that you a
 		// same-thread executor
 		if (lifecycleSteps instanceof PerStoriesWebDriverSteps) {
 			configuredEmbedder().useExecutorService(
 					MoreExecutors.sameThreadExecutor());
-			configuredEmbedder().useMetaFilters(asList("-skip"));
 		}
 	}
 
@@ -59,17 +79,15 @@ public class GoogleStories extends JUnitStories {
 		Class<? extends Embeddable> embeddableClass = this.getClass();
 		return new SeleniumConfiguration()
 				.useSeleniumContext(context)
-				.useWebDriverProvider(driverProvider)
+				.usePendingStepStrategy(pendingStepStrategy)
+				.useStoryControls(
+						new StoryControls().doResetStateBeforeScenario(false))
+				.useStepMonitor(stepMonitor)
 				.useStepMonitor(
 						new SeleniumStepMonitor(contextView, context,
 								new SilentStepMonitor()))
 				.useStoryLoader(new LoadFromClasspath(embeddableClass))
-				.useStoryReporterBuilder(
-						new StoryReporterBuilder()
-								.withCodeLocation(
-										codeLocationFromClass(embeddableClass))
-								.withDefaultFormats()
-								.withFormats(CONSOLE, TXT, HTML, XML));
+				.useStoryReporterBuilder(reporterBuilder);
 	}
 
 	@Override
@@ -84,18 +102,9 @@ public class GoogleStories extends JUnitStories {
 	@Override
 	protected List<String> storyPaths() {
 		return new StoryFinder().findPaths(
-				codeLocationFromClass(this.getClass()).getFile(),
-				asList("**/*.story"), null);
-	}
-
-	// This Embedder is used by Maven or Ant and it will override anything set
-	// in the constructor
-	public static class SameThreadEmbedder extends Embedder {
-
-		public SameThreadEmbedder() {
-			useExecutorService(MoreExecutors.sameThreadExecutor());
-		}
-
+				codeLocationFromClass(this.getClass()).getFile(), asList("**/"
+						+ System.getProperty("storyFilter", "*") + ".story"),
+				null);
 	}
 
 }
