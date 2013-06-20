@@ -40,7 +40,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>1.5</java.version>
-		<jbehave.core.version>3.7.4</jbehave.core.version>
+		<jbehave.core.version>3.8</jbehave.core.version>
 		<jbehave.web.version>3.5.5</jbehave.web.version>
 		<jbehave.site.version>3.1.1</jbehave.site.version>
 		<fluent.selenium.version>1.6.4</fluent.selenium.version>
@@ -72,17 +72,6 @@
 			<artifactId>jbehave-site-resources</artifactId>
 			<version>${jbehave.site.version}</version>
 			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>${selenium.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jbehave.web</groupId>
@@ -122,6 +111,22 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -132,11 +137,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.1</version>
-					<configuration>						
+					<configuration>
+						<source>1.7</source>
 						<target>1.7</target>
 						<includes>
 							<include>**/*.java</include>
-							<include>**/*.story</include>
 						</includes>
 					</configuration>
 				</plugin>
@@ -149,7 +154,16 @@
 			</plugins>
 		</pluginManagement>
 
-		
+		<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/java/com/demo/web/stories</directory>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -197,14 +211,16 @@
 								<include>${stories}</include>
 							</includes>
 							<excludes />
-							<ignoreFailureInStories>${ignore.failures}</ignoreFailureInStories>
+							<ignoreFailureInStories>${ignore.failures}
+							</ignoreFailureInStories>
 							<ignoreFailureInView>${ignore.failures}</ignoreFailureInView>
 							<threads>${threads}</threads>
 							<skip>${skip}</skip>
 							<metaFilters>
 								<metaFilter>${meta.filter}</metaFilter>
 							</metaFilters>
-							<executorsClass>org.jbehave.core.embedder.executors.SameThreadExecutors</executorsClass>
+							<executorsClass>org.jbehave.core.embedder.executors.SameThreadExecutors
+							</executorsClass>
 						</configuration>
 						<goals>
 							<goal>run-stories-as-embeddables</goal>
