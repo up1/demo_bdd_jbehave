@@ -68,11 +68,6 @@
 			<type>zip</type>
 		</dependency>
 		<dependency>
-			<groupId>org.jbehave.web</groupId>
-			<artifactId>jbehave-web-selenium</artifactId>
-			<version>3.5.5</version>
-		</dependency>
-		<dependency>
 			<groupId>org.jbehave.site</groupId>
 			<artifactId>jbehave-site-resources</artifactId>
 			<version>${jbehave.site.version}</version>
@@ -136,10 +131,13 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>2.1</version>
-					<configuration>
-						<source>1.5</source>
-						<target>1.5</target>
+					<version>3.1</version>
+					<configuration>						
+						<target>1.7</target>
+						<includes>
+							<include>**/*.java</include>
+							<include>**/*.story</include>
+						</includes>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -151,16 +149,7 @@
 			</plugins>
 		</pluginManagement>
 
-		<resources>
-			<resource>
-				<directory>${basedir}/src/main/resources</directory>
-				<filtering>false</filtering>
-			</resource>
-			<resource>
-				<directory>${basedir}/src/main/com/demo/web/stories</directory>
-				<filtering>false</filtering>
-			</resource>
-		</resources>
+		
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
